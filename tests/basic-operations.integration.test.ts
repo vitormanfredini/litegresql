@@ -34,7 +34,7 @@ describe('PostgreSQL Mimic Integration Tests', () => {
     expect(result.command).toBe('CREATE');
   });
 
-  it('should insert a row into the table', async () => {
+  it('should insert 2 rows into the table', async () => {
     const result = await client.query(`
       INSERT INTO users 
       (name, age) 
@@ -45,6 +45,17 @@ describe('PostgreSQL Mimic Integration Tests', () => {
     expect(result.rowCount).toBe(1);
     expect(result.command).toBe('INSERT');
     expect(result.rows[0].id).toBeGreaterThan(0);
+
+    const result2 = await client.query(`
+      INSERT INTO users 
+      (name, age) 
+      VALUES
+      ('Bob', 13)
+      RETURNING id;
+    `);
+    expect(result2.rowCount).toBe(1);
+    expect(result2.command).toBe('INSERT');
+    expect(result2.rows[0].id).toBeGreaterThan(0);
   });
 
   it('should select rows from the table', async () => {
@@ -62,6 +73,20 @@ describe('PostgreSQL Mimic Integration Tests', () => {
 
     const selectResult = await client.query(`SELECT age FROM users WHERE name = 'Alice';`);
     expect(selectResult.rows[0].age).toBe(31);
+  });
+
+  it('should COUNT rows', async () => {
+    const result = await client.query(`SELECT COUNT(*) FROM users;`);
+    expect(result.command).toBe('SELECT');
+    expect(result.rowCount).toBe(1);
+    expect(result.rows[0]['COUNT(*)']).toBe(2)
+  });
+
+  it('should SUM ages of all rows', async () => {
+    const result = await client.query(`SELECT SUM(age) FROM users;`);
+    expect(result.command).toBe('SELECT');
+    expect(result.rowCount).toBe(1);
+    expect(result.rows[0]['SUM(age)']).toBe(44)
   });
 
   it('should delete a row from the table', async () => {
