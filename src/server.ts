@@ -98,6 +98,8 @@ const storeClientParameters = (data: Buffer): void => {
 
     store['protocolVersion'] = protocolVersion;
     store['parameters'] = parameters;
+
+    console.log('store', store)
 }
 
 const handleStartupMessage = (socket: net.Socket, data: Buffer): void => {
@@ -329,8 +331,13 @@ const start = (host: string, port: number) => {
         console.log(`Client connected from ${socket.remoteAddress}`);
 
         socket.on('data', async (data: Buffer) => {
+            console.log('Received:', data);
 
-            // console.log('Received:', data);
+            const isCancelRequestMessage = data.length >= 8 && data.readUInt32BE(4) === 0x04D2162F;
+            if(isCancelRequestMessage){
+                socket.write(makeMessage(MessageType.AuthenticationOk, Buffer.alloc(4)));
+                return
+            }
 
             const isStartupMessage = data.length >= 8 && data.readUInt32BE(4) === 0x00030000;
             if(isStartupMessage){
@@ -355,14 +362,14 @@ const start = (host: string, port: number) => {
                 return
             }
 
-            console.log('Unsupported message:')
-            console.log(data)
+            console.log('Error: Unsupported message.')
 
         });
 
         socket.on('end', () => {
             console.log('Client disconnected');
         });
+
     });
 
     server.listen(port, host, () => {

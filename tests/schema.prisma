@@ -1,0 +1,14 @@
+datasource db {
+  provider = "postgresql"
+  url      = "postgresql://user:password@localhost:5432/test_db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id   Int    @id @default(autoincrement())
+  name String
+  age  Int
+}

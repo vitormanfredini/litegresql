@@ -5,7 +5,7 @@
 ```bash
 yarn
 tsc
-node build/server.js
+yarn start
 ```
 
 ### Run tests:
